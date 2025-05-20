@@ -21,7 +21,7 @@ const DynamicForm = ({ form, onSubmitSuccess, customButtonText, customButtonColo
   
   // New states for steps functionality
   const [currentStep, setCurrentStep] = useState(0);
-  const [fieldsPerStep] = useState(2);
+  const [fieldsPerStep] = useState(1);
   const [submissionAttempted, setSubmissionAttempted] = useState(false); // Track if submission was attempted
   
   console.log('Form data--->', form)
@@ -640,51 +640,203 @@ const DynamicForm = ({ form, onSubmitSuccess, customButtonText, customButtonColo
           </div>
         );
       
-      case 'checkbox':
-        return (
-          <div className="mb-4" key={field.id}>
-            <fieldset>
-              <legend className={`${labelClass} mb-2`}>
-                {field.label} {field.isRequired && <span className="text-red-500">*</span>}
-              </legend>
-              <div className="mt-1 space-y-2">
-                {field.options && field.options.map((option, i) => {
-                  const optionValue = typeof option === 'object' ? option.value : option;
-                  const optionLabel = typeof option === 'object' ? option.label : option;
+      // case 'checkbox':
+      //   return (
+      //     <div className="mb-4" key={field.id}>
+      //       <fieldset>
+      //         <legend className={`${labelClass} mb-2`}>
+      //           {field.label} {field.isRequired && <span className="text-red-500">*</span>}
+      //         </legend>
+      //         <div className="mt-1 space-y-2">
+      //           {field.options && field.options.map((option, i) => {
+      //             const optionValue = typeof option === 'object' ? option.value : option;
+      //             const optionLabel = typeof option === 'object' ? option.label : option;
                   
-                  const isChecked = formData[field.id] === optionValue;
+      //             const isChecked = formData[field.id] === optionValue;
                   
-                  const handleCheckboxChange = () => {
-                    // Only store the single selected value
-                    handleChange(field.id, optionValue);
-                  };
+      //             const handleCheckboxChange = () => {
+      //               // Only store the single selected value
+      //               handleChange(field.id, optionValue);
+      //             };
                   
-                  return (
-                    <label 
-                      key={i} 
-                      htmlFor={`field-${field.id}-option-${i}`}
-                      className="flex items-start p-3 border border-gray-200 rounded-md hover:border-primary-500 cursor-pointer transition-colors"
-                    >
-                      <input
-                        id={`field-${field.id}-option-${i}`}
-                        type="checkbox"
-                        className="h-4 w-4 mt-0.5 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
-                        checked={isChecked}
-                        onChange={handleCheckboxChange}
-                      />
-                      <span className="ml-3 text-sm text-gray-700">
-                        {optionLabel}
-                      </span>
-                    </label>
-                  );
-                })}
-              </div>
-            </fieldset>
-            {errors[field.id] && <p className="mt-1 text-sm text-red-500">{errors[field.id]}</p>}
-            {field.note && <p className="mt-1 text-xs text-gray-500">{field.note}</p>}
-          </div>
-        );
+      //             return (
+      //               <label 
+      //                 key={i} 
+      //                 htmlFor={`field-${field.id}-option-${i}`}
+      //                 className="flex items-start p-3 border border-gray-200 rounded-md hover:border-primary-500 cursor-pointer transition-colors"
+      //               >
+      //                 <input
+      //                   id={`field-${field.id}-option-${i}`}
+      //                   type="checkbox"
+      //                   className="h-4 w-4 mt-0.5 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+      //                   checked={isChecked}
+      //                   onChange={handleCheckboxChange}
+      //                 />
+      //                 <span className="ml-3 text-sm text-gray-700">
+      //                   {optionLabel}
+      //                 </span>
+      //               </label>
+      //             );
+      //           })}
+      //         </div>
+      //       </fieldset>
+      //       {errors[field.id] && <p className="mt-1 text-sm text-red-500">{errors[field.id]}</p>}
+      //       {field.note && <p className="mt-1 text-xs text-gray-500">{field.note}</p>}
+      //     </div>
+      //   );
       
+// Replace the checkbox case in renderField function with this:
+
+case 'checkbox':
+  return (
+    <div className="mb-4" key={field.id}>
+      <fieldset>
+        <legend className={`${labelClass} mb-2`}>
+          {field.label} {field.isRequired && <span className="text-red-500">*</span>}
+        </legend>
+        <div className="mt-1 space-y-2">
+          {field.options && field.options.map((option, i) => {
+            const optionValue = typeof option === 'object' ? option.value : option;
+            const optionLabel = typeof option === 'object' ? option.label : option;
+            
+            // Handle multiple selections - formData[field.id] should be an array
+            const selectedValues = formData[field.id] || [];
+            const isChecked = Array.isArray(selectedValues) 
+              ? selectedValues.includes(optionValue)
+              : selectedValues === optionValue; // Backward compatibility
+            
+            const handleCheckboxChange = () => {
+              const currentValues = formData[field.id] || [];
+              
+              // Ensure we're working with an array
+              const valuesArray = Array.isArray(currentValues) ? currentValues : [];
+              
+              let newValues;
+              if (isChecked) {
+                // Remove the value if it's currently checked
+                newValues = valuesArray.filter(val => val !== optionValue);
+              } else {
+                // Add the value if it's not currently checked
+                newValues = [...valuesArray, optionValue];
+              }
+              
+              handleChange(field.id, newValues);
+            };
+            
+            return (
+              <label 
+                key={i} 
+                htmlFor={`field-${field.id}-option-${i}`}
+                className="flex items-start p-3 border border-gray-200 rounded-md hover:border-primary-500 cursor-pointer transition-colors"
+              >
+                <input
+                  id={`field-${field.id}-option-${i}`}
+                  type="checkbox"
+                  className="h-4 w-4 mt-0.5 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                  checked={isChecked}
+                  onChange={handleCheckboxChange}
+                />
+                <span className="ml-3 text-sm text-gray-700">
+                  {optionLabel}
+                </span>
+              </label>
+            );
+          })}
+        </div>
+      </fieldset>
+      {errors[field.id] && <p className="mt-1 text-sm text-red-500">{errors[field.id]}</p>}
+      {field.note && <p className="mt-1 text-xs text-gray-500">{field.note}</p>}
+    </div>
+  );
+
+// Also update the validateForm function to handle checkbox arrays:
+// Replace the validation logic with this enhanced version:
+
+const validateForm = () => {
+  if (useSteps && questionFlowComplete) {
+    // For stepped forms, validate all fields
+    const newErrors = {};
+    let isValid = true;
+    
+    normalFields.forEach(field => {
+      if (field.isRequired) {
+        if (field.type === 'checkbox') {
+          // For checkbox fields, check if array has at least one value
+          const values = formData[field.id];
+          if (!values || (Array.isArray(values) && values.length === 0)) {
+            newErrors[field.id] = 'Please select at least one option';
+            isValid = false;
+          }
+        } else if (!formData[field.id]) {
+          newErrors[field.id] = 'This field is required';
+          isValid = false;
+        }
+      }
+    });
+    
+    setErrors(newErrors);
+    return isValid;
+  } else {
+    // Original validation logic for non-stepped forms or question flow
+    const newErrors = {};
+    let isValid = true;
+    
+    const fieldsToValidate = questionFlowComplete
+      ? normalFields
+      : questionsFlow.filter(q => q.id === currentQuestionId);
+    
+    fieldsToValidate.forEach(field => {
+      const fieldId = field.type === 'question' ? `question_${field.id}` : field.id;
+      if (field.isRequired) {
+        if (field.type === 'checkbox') {
+          // For checkbox fields, check if array has at least one value
+          const values = formData[fieldId];
+          if (!values || (Array.isArray(values) && values.length === 0)) {
+            newErrors[fieldId] = 'Please select at least one option';
+            isValid = false;
+          }
+        } else if (!formData[fieldId]) {
+          newErrors[fieldId] = 'This field is required';
+          isValid = false;
+        }
+      }
+    });
+    
+    setErrors(newErrors);
+    return isValid;
+  }
+};
+
+// Also update validateCurrentStep function for step validation:
+const validateCurrentStep = () => {
+  const newErrors = {};
+  let isValid = true;
+  
+  const startIndex = currentStep * fieldsPerStep;
+  const currentStepFields = normalFields.slice(startIndex, startIndex + fieldsPerStep);
+  
+  // Check required fields for current step
+  currentStepFields.forEach(field => {
+    if (field.isRequired) {
+      if (field.type === 'checkbox') {
+        // For checkbox fields, check if array has at least one value
+        const values = formData[field.id];
+        if (!values || (Array.isArray(values) && values.length === 0)) {
+          newErrors[field.id] = 'Please select at least one option';
+          isValid = false;
+        }
+      } else if (!formData[field.id]) {
+        newErrors[field.id] = 'This field is required';
+        isValid = false;
+      }
+    }
+  });
+  
+  setErrors(newErrors);
+  return isValid;
+};
+
+
       case 'date':
         return (
           <div className="mb-4" key={field.id}>
@@ -1070,7 +1222,7 @@ const DynamicForm = ({ form, onSubmitSuccess, customButtonText, customButtonColo
 };
 
 export default DynamicForm;
-// 'use client';
+
 // import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 // import { toast } from 'react-toastify';
 // import { submitForm, uploadMediaFile,  deleteFileNormal } from '@services/api';

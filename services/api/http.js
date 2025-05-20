@@ -25,7 +25,7 @@ const baseURL = "https://letsheat-back.vercel.app"
 const localURL = "http://localhost:3001"
 
 const http = axios.create({
-  baseURL: baseURL + `/api`,
+  baseURL: localURL + `/api`,
   
   // retryDelay: 1000,
   // maxRetries: 3,
